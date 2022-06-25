@@ -6,7 +6,7 @@ import { DSTest } from 'ds-test/test.sol';
 import { Semaphore } from 'world-id-contracts/Semaphore.sol';
 import { TestERC20 } from './mock/TestERC20.sol';
 import { TypeConverter } from './utils/TypeConverter.sol';
-import { WorldIDAirdrop } from '../WorldIDAirdrop.sol';
+import { WorldIDAirdrop } from '../frn.sol';
 
 contract User {}
 
