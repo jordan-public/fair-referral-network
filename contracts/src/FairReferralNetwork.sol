@@ -7,24 +7,12 @@ import { ByteHasher } from 'world-id-contracts/libraries/ByteHasher.sol';
 contract FairReferralNetwork {
     using ByteHasher for bytes;
 
-    ///////////////////////////////////////////////////////////////////////////////
-    ///                                  ERRORS                                ///
-    //////////////////////////////////////////////////////////////////////////////
-
     /// @notice Thrown when attempting to reuse a nullifier
     error InvalidNullifier();
-
-    ///////////////////////////////////////////////////////////////////////////////
-    ///                                  EVENTS                                ///
-    //////////////////////////////////////////////////////////////////////////////
-
+    
     /// @notice Emitted when an referral is successfully claimed
-    /// @param receiver The address that claimed the referral
+    /// @param claimer The address that claimed the referral
     event ReferralClaimed(address claimer);
-
-    ///////////////////////////////////////////////////////////////////////////////
-    ///                              CONFIG STORAGE                            ///
-    //////////////////////////////////////////////////////////////////////////////
 
     /// @dev The WorldID instance that will be used for managing groups and verifying proofs
     IWorldID internal immutable worldId;
@@ -35,9 +23,11 @@ contract FairReferralNetwork {
     /// @dev Whether a nullifier hash has been used already. Used to prevent double-signaling
     mapping(uint256 => bool) internal nullifierHashes;
 
-    ///////////////////////////////////////////////////////////////////////////////
-    ///                               CONSTRUCTOR                              ///
-    //////////////////////////////////////////////////////////////////////////////
+    /// @dev Denominator for fees
+    uint256 public constant FEE_DENOM = 10000;
+
+    /// @dev Array of referral fees for each level up
+    uint256[] public referralFees;
 
     /// @notice Deploys a FairReferralNetwork instance
     /// @param _worldId The WorldID instance that will manage groups and verify proofs
@@ -45,31 +35,45 @@ contract FairReferralNetwork {
     constructor(
         IWorldID _worldId,
         uint256 _groupId,
+        uint256[] memory _referralFees
     ) {
         worldId = _worldId;
         groupId = _groupId;
+        for (uint i; i < referralFees.length; i++) referralFees[i] = _referralFees[i];
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    ///                               CLAIM LOGIC                               ///
-    //////////////////////////////////////////////////////////////////////////////
+    mapping (address => address) referrerOf;
+
+    function claimerAddressHash(address claimer) public view returns (bytes32) {
+        return keccak256(abi.encodePacked(claimer));
+    }
+
+    function checkReferral(uint8 v, bytes32 r, bytes32 s, address claimer) public returns (address referrer) {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32Referral";
+        bytes32 prefixedHashMessage = keccak256(abi.encodePacked(prefix, claimerAddressHash(claimer)));
+        referrer == ecrecover(prefixedHashMessage, v, r, s); // Could be 0-address
+    }
 
     /// @notice Claim the referral
-    /// @param claimer The address that will receive the tokens
+    /// @param v Signature part
+    /// @param r Signature part
+    /// @param s Signature part
     /// @param root The of the Merkle tree
     /// @param nullifierHash The nullifier for this proof, preventing double signaling
     /// @param proof The zero knowledge proof that demostrates the claimer has been onboarded to World ID
-    function claim(
-        address claimer,
+    function claimReferral(
+        uint8 v, bytes32 r, bytes32 s,
         uint256 root,
         uint256 nullifierHash,
         uint256[8] calldata proof
     ) public {
+        address referrer = checkReferral(v, r, s, msg.sender);
+
         if (nullifierHashes[nullifierHash]) revert InvalidNullifier();
         worldId.verifyProof(
             root,
             groupId,
-            abi.encodePacked(claimer).hashToField(),
+            abi.encodePacked(msg.sender).hashToField(),
             nullifierHash,
             abi.encodePacked(address(this)).hashToField(),
             proof
@@ -77,6 +81,6 @@ contract FairReferralNetwork {
 
         nullifierHashes[nullifierHash] = true;
 
-        // Setup referral link
+        referrerOf[msg.sender] = referrer;
     }
 }

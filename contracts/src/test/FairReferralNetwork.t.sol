@@ -27,7 +27,7 @@ contract FairReferralNetworkTest is DSTest {
         user = new User();
         token = new TestERC20();
         semaphore = new Semaphore();
-        fairReferralNetwork = new FairReferralNetwork(semaphore, groupId, token, address(user), 1 ether);
+        fairReferralNetwork = new FairReferralNetwork(semaphore, groupId, [uint256(100)]);
 
         hevm.label(address(this), 'Sender');
         hevm.label(address(user), 'Holder');
@@ -72,7 +72,7 @@ contract FairReferralNetworkTest is DSTest {
         semaphore.addMember(groupId, genIdentityCommitment());
 
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
-        fairReferralNetwork.claim(address(this), semaphore.getRoot(groupId), nullifierHash, proof);
+        fairReferralNetwork.checkReferral(address(this), semaphore.getRoot(groupId), nullifierHash, proof);
 
         assertEq(token.balanceOf(address(this)), fairReferralNetwork.airdropAmount());
     }
