@@ -6,11 +6,11 @@ import { DSTest } from 'ds-test/test.sol';
 import { Semaphore } from 'world-id-contracts/Semaphore.sol';
 import { TestERC20 } from './mock/TestERC20.sol';
 import { TypeConverter } from './utils/TypeConverter.sol';
-import { WorldIDAirdrop } from '../frn.sol';
+import { FairReferralNetwork } from '../FairReferralNetwork.sol';
 
 contract User {}
 
-contract WorldIDAirdropTest is DSTest {
+contract FairReferralNetworkTest is DSTest {
     using TypeConverter for address;
 
     event AmountUpdated(uint256 amount);
@@ -19,7 +19,7 @@ contract WorldIDAirdropTest is DSTest {
     uint256 internal groupId;
     TestERC20 internal token;
     Semaphore internal semaphore;
-    WorldIDAirdrop internal airdrop;
+    FairReferralNetwork internal fairReferralNetwork;
     Vm internal hevm = Vm(HEVM_ADDRESS);
 
     function setUp() public {
@@ -27,20 +27,20 @@ contract WorldIDAirdropTest is DSTest {
         user = new User();
         token = new TestERC20();
         semaphore = new Semaphore();
-        airdrop = new WorldIDAirdrop(semaphore, groupId, token, address(user), 1 ether);
+        fairReferralNetwork = new FairReferralNetwork(semaphore, groupId, token, address(user), 1 ether);
 
         hevm.label(address(this), 'Sender');
         hevm.label(address(user), 'Holder');
         hevm.label(address(token), 'Token');
         hevm.label(address(semaphore), 'Semaphore');
-        hevm.label(address(airdrop), 'WorldIDAirdrop');
+        hevm.label(address(fairReferralNetwork), 'FairReferralNetwork');
 
         // Issue some tokens to the user address, to be airdropped from the contract
         token.issue(address(user), 10 ether);
 
         // Approve spending from the airdrop contract
         hevm.prank(address(user));
-        token.approve(address(airdrop), type(uint256).max);
+        token.approve(address(fairReferralNetwork), type(uint256).max);
     }
 
     function genIdentityCommitment() internal returns (uint256) {
@@ -57,7 +57,7 @@ contract WorldIDAirdropTest is DSTest {
         ffiArgs[0] = 'node';
         ffiArgs[1] = '--no-warnings';
         ffiArgs[2] = 'src/test/scripts/generate-proof.js';
-        ffiArgs[3] = address(airdrop).toString();
+        ffiArgs[3] = address(fairReferralNetwork).toString();
         ffiArgs[4] = address(this).toString();
 
         bytes memory returnData = hevm.ffi(ffiArgs);
@@ -72,9 +72,9 @@ contract WorldIDAirdropTest is DSTest {
         semaphore.addMember(groupId, genIdentityCommitment());
 
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
-        airdrop.claim(address(this), semaphore.getRoot(groupId), nullifierHash, proof);
+        fairReferralNetwork.claim(address(this), semaphore.getRoot(groupId), nullifierHash, proof);
 
-        assertEq(token.balanceOf(address(this)), airdrop.airdropAmount());
+        assertEq(token.balanceOf(address(this)), fairReferralNetwork.airdropAmount());
     }
 
     function testCanClaimAfterNewMemberAdded() public {
@@ -86,9 +86,9 @@ contract WorldIDAirdropTest is DSTest {
         semaphore.addMember(groupId, 1);
 
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
-        airdrop.claim(address(this), root, nullifierHash, proof);
+        fairReferralNetwork.claim(address(this), root, nullifierHash, proof);
 
-        assertEq(token.balanceOf(address(this)), airdrop.airdropAmount());
+        assertEq(token.balanceOf(address(this)), fairReferralNetwork.airdropAmount());
     }
 
     function testCannotClaimHoursAfterNewMemberAdded() public {
@@ -103,7 +103,7 @@ contract WorldIDAirdropTest is DSTest {
 
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
         hevm.expectRevert(Semaphore.InvalidRoot.selector);
-        airdrop.claim(address(this), root, nullifierHash, proof);
+        fairReferralNetwork.claim(address(this), root, nullifierHash, proof);
 
         assertEq(token.balanceOf(address(this)), 0);
     }
@@ -115,15 +115,15 @@ contract WorldIDAirdropTest is DSTest {
         semaphore.addMember(groupId, genIdentityCommitment());
 
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
-        airdrop.claim(address(this), semaphore.getRoot(groupId), nullifierHash, proof);
+        fairReferralNetwork.claim(address(this), semaphore.getRoot(groupId), nullifierHash, proof);
 
-        assertEq(token.balanceOf(address(this)), airdrop.airdropAmount());
+        assertEq(token.balanceOf(address(this)), fairReferralNetwork.airdropAmount());
 
         uint256 root = semaphore.getRoot(groupId);
-        hevm.expectRevert(WorldIDAirdrop.InvalidNullifier.selector);
-        airdrop.claim(address(this), root, nullifierHash, proof);
+        hevm.expectRevert(FairReferralNetwork.InvalidNullifier.selector);
+        fairReferralNetwork.claim(address(this), root, nullifierHash, proof);
 
-        assertEq(token.balanceOf(address(this)), airdrop.airdropAmount());
+        assertEq(token.balanceOf(address(this)), fairReferralNetwork.airdropAmount());
     }
 
     function testCannotClaimIfNotMember() public {
@@ -136,7 +136,7 @@ contract WorldIDAirdropTest is DSTest {
         (uint256 nullifierHash, uint256[8] memory proof) = genProof();
 
         hevm.expectRevert(abi.encodeWithSignature('InvalidProof()'));
-        airdrop.claim(address(this), root, nullifierHash, proof);
+        fairReferralNetwork.claim(address(this), root, nullifierHash, proof);
 
         assertEq(token.balanceOf(address(this)), 0);
     }
@@ -151,7 +151,7 @@ contract WorldIDAirdropTest is DSTest {
 
         uint256 root = semaphore.getRoot(groupId);
         hevm.expectRevert(abi.encodeWithSignature('InvalidProof()'));
-        airdrop.claim(address(user), root, nullifierHash, proof);
+        fairReferralNetwork.claim(address(user), root, nullifierHash, proof);
 
         assertEq(token.balanceOf(address(this)), 0);
     }
@@ -167,28 +167,28 @@ contract WorldIDAirdropTest is DSTest {
 
         uint256 root = semaphore.getRoot(groupId);
         hevm.expectRevert(abi.encodeWithSignature('InvalidProof()'));
-        airdrop.claim(address(this), root, nullifierHash, proof);
+        fairReferralNetwork.claim(address(this), root, nullifierHash, proof);
 
         assertEq(token.balanceOf(address(this)), 0);
     }
 
     function testUpdateAirdropAmount() public {
-        assertEq(airdrop.airdropAmount(), 1 ether);
+        assertEq(fairReferralNetwork.airdropAmount(), 1 ether);
 
         hevm.expectEmit(false, false, false, true);
         emit AmountUpdated(2 ether);
-        airdrop.updateAmount(2 ether);
+        fairReferralNetwork.updateAmount(2 ether);
 
-        assertEq(airdrop.airdropAmount(), 2 ether);
+        assertEq(fairReferralNetwork.airdropAmount(), 2 ether);
     }
 
     function testCannotUpdateAirdropAmountIfNotManager() public {
-        assertEq(airdrop.airdropAmount(), 1 ether);
+        assertEq(fairReferralNetwork.airdropAmount(), 1 ether);
 
-        hevm.expectRevert(WorldIDAirdrop.Unauthorized.selector);
+        hevm.expectRevert(FairReferralNetwork.Unauthorized.selector);
         hevm.prank(address(user));
-        airdrop.updateAmount(2 ether);
+        fairReferralNetwork.updateAmount(2 ether);
 
-        assertEq(airdrop.airdropAmount(), 1 ether);
+        assertEq(fairReferralNetwork.airdropAmount(), 1 ether);
     }
 }

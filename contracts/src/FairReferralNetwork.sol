@@ -6,10 +6,7 @@ import { SafeTransferLib } from 'solmate/utils/SafeTransferLib.sol';
 import { IWorldID } from 'world-id-contracts/interfaces/IWorldID.sol';
 import { ByteHasher } from 'world-id-contracts/libraries/ByteHasher.sol';
 
-/// @title World ID Airdrop example
-/// @author Miguel Piedrafita
-/// @notice Template contract for airdropping tokens to World ID users
-contract WorldIDAirdrop {
+contract FairReferralNetwork {
     using ByteHasher for bytes;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -64,7 +61,7 @@ contract WorldIDAirdrop {
     ///                               CONSTRUCTOR                              ///
     //////////////////////////////////////////////////////////////////////////////
 
-    /// @notice Deploys a WorldIDAirdrop instance
+    /// @notice Deploys a FairReferralNetwork instance
     /// @param _worldId The WorldID instance that will manage groups and verify proofs
     /// @param _groupId The ID of the Semaphore group World ID is using (`1`)
     /// @param _token The ERC20 token that will be airdropped to eligible participants
