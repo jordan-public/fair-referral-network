@@ -107,12 +107,7 @@ export const App = React.memo(function App() {
         )}
       >
         <header className="flex items-center py-2.5">
-          <p
-            className="text-20 font-bold text-ffffff xs:text-32"
-            style={{ flexGrow: 1 }}
-          >
-            Mesha
-          </p>
+          
           {walletAddress && (
             <div className="font-bold text-ffffff">
               {midEllipsis(walletAddress, 12)}{" "}
@@ -136,13 +131,11 @@ export const App = React.memo(function App() {
             </h1>
 
             <div className="mt-2 grid justify-items-center text-48 lg:text-80 xs:mt-0 xs:block">
-              <span className="font-black text-df57bc ">Get $50 </span>
-              <span className="font-black">in Mesha</span>
+              <span className="font-black text-df57bc ">Get a network referral </span>
             </div>
 
             <p className="mb-5 text-center text-14 xs:mb-8 xs:text-18">
-              Mesha is live and ready to use. Login to claim your tokens for
-              free.
+              Login to claim your referral.
             </p>
 
             {screen === Screen.Initial && (
@@ -152,11 +145,11 @@ export const App = React.memo(function App() {
                   type="button"
                   className="bg-df57bc hover:bg-df57bc/70"
                 >
-                  Connect Wallet to Claim
+                  Connect Wallet to Process Referral
                 </Button>
 
                 <p className="text-14 xs:text-12">
-                  To test this flow, connect a wallet on Testnet
+                  Connect a wallet on Testnet!
                 </p>
               </div>
             )}
@@ -221,21 +214,11 @@ export const App = React.memo(function App() {
       </div>
 
       {screen === Screen.Initial && (
-        <div
-          className={cn(
-            "relative -mx-6 max-w-[1088px] justify-self-center px-6 xs:w-full",
-            "border-t border-df57bc bg-0f0b16 py-3 text-df57bc xs:rounded-10 xs:border xs:text-center",
-          )}
-        >
+        <div>
           <span>
-            Mesha is a mock client app to showcase how World ID works.{" "}
+            {" "}
           </span>
-          <a
-            href="/"
-            className="underline decoration-1 transition-opacity hover:opacity-80"
-          >
-            Learn more
-          </a>
+          
         </div>
       )}
 
