@@ -27,7 +27,9 @@ contract FairReferralNetworkTest is DSTest {
         user = new User();
         token = new TestERC20();
         semaphore = new Semaphore();
-        fairReferralNetwork = new FairReferralNetwork(semaphore, groupId, [uint256(100)]);
+        uint256[] memory fees = new uint256[](1);
+        fees[0] = 100;
+        fairReferralNetwork = new FairReferralNetwork(semaphore, groupId, fees);
 
         hevm.label(address(this), 'Sender');
         hevm.label(address(user), 'Holder');

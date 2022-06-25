@@ -76,12 +76,20 @@ async function deploySemaphore(ibtAddress) {
     return tx.contractAddress
 }
 
+async function askFeeList() {
+    let f = [];
+    while (true) {
+        const nextFee = await ask('Nex referral fee (in 10000-ths): ');
+        if (0 === nextFee) break;
+        f.push(nextFee);
+    }
+    return f;
+}
+
 async function deployFairReferralNetwork(semaphoreAddress) {
-    const [groupId, erc20Address, holderAddress, airdropAmount] = [
+    const [groupId, fees] = [
         await ask('Semaphore group id: '),
-        await ask('ERC20 address: '),
-        await ask('ERC20 holder address: '),
-        await ask('Amount to airdrop: '),
+        await askFeeList(),
     ]
 
     const spinner = ora(`Deploying FairReferralNetwork contract...`).start()
@@ -93,9 +101,7 @@ async function deployFairReferralNetwork(semaphoreAddress) {
                 abi.encode(FairReferralNetwork.abi[0].inputs, [
                     semaphoreAddress,
                     groupId,
-                    erc20Address,
-                    holderAddress,
-                    airdropAmount,
+                    fees,
                 ]),
             ])
         ),

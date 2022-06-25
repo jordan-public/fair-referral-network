@@ -39,19 +39,18 @@ contract FairReferralNetwork {
     ) {
         worldId = _worldId;
         groupId = _groupId;
-        for (uint i; i < referralFees.length; i++) referralFees[i] = _referralFees[i];
+        for (uint i; i < _referralFees.length; i++) referralFees.push(_referralFees[i]);
     }
 
     mapping (address => address) referrerOf;
 
-    function claimerAddressHash(address claimer) public view returns (bytes32) {
-        return keccak256(abi.encodePacked(claimer));
+    function unsignedReferral(address claimer) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", 
+                         keccak256(abi.encodePacked("Referral", claimer))));
     }
 
-    function checkReferral(uint8 v, bytes32 r, bytes32 s, address claimer) public returns (address referrer) {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32Referral";
-        bytes32 prefixedHashMessage = keccak256(abi.encodePacked(prefix, claimerAddressHash(claimer)));
-        referrer == ecrecover(prefixedHashMessage, v, r, s); // Could be 0-address
+    function checkReferral(uint8 v, bytes32 r, bytes32 s, address claimer) public pure returns (address referrer) {
+        referrer == ecrecover(unsignedReferral(claimer), v, r, s); // Could be 0-address
     }
 
     /// @notice Claim the referral
@@ -82,5 +81,19 @@ contract FairReferralNetwork {
         nullifierHashes[nullifierHash] = true;
 
         referrerOf[msg.sender] = referrer;
+    }
+
+    /// @dev propagate the payout to referrers
+    function payUs(address payable recipient) external payable {
+        // Reentrancy protected by payable function having to receive more than paying out
+        // pay referrers first
+        address payable nextReferrer = recipient;
+        for (uint i; i < referralFees.length; i++) {
+            nextReferrer = payable(referrerOf[nextReferrer]);
+            if (address(0) == nextReferrer) break; // no more referrers
+            nextReferrer.transfer(msg.value * referralFees[i] / FEE_DENOM);
+        }
+        // by now all referrers are paid
+        recipient.transfer(payable(address(this)).balance);
     }
 }
