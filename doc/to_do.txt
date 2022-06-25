@@ -1,0 +1,6 @@
+To do:
+
+Contract:
+- Constructor - no amounts
+- Add referrer signature
+- Check referrer signature
