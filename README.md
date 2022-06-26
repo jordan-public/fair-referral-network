@@ -1,6 +1,9 @@
 # Fair Referral Network
 Sybil attack proof referral network using Worldcoin Zero Knowledge proof-of-personhood
 
+## Demo video
+See [this link](demo/README.md)
+
 ## Description
 Sales networks are webs of people referring each other to prospective customers and sales opportunities. Most efficient such networks are Multi Level Marketing, which unfortunately suffers from a lack of fairness. This was exposed by Pershing Capital activist investor Bill Ackman, trying to reveal the unfairness and dishonesty of Herbalife. Fair Referral Network identifies these problems and provides a solution by limiting the depth of the network to avoid a pyramid scheme where the top reaps all the profit and the bottom loses. In addition it provides transparency and protection against Sybil attacks, in which one person would act as several ghost actors in order to circumvent the real referrer. 
 
