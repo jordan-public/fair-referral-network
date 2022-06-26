@@ -22,6 +22,9 @@ enum Screen {
 }
 
 export const App = React.memo(function App() {
+  const [toConsumeReferral, setToConsumeReferral] = React.useState("");
+  const [toRefAddress, setToRefAddress] = React.useState("");
+  const [referral, setReferral] = React.useState("");
   const [screen, setScreen] = React.useState(Screen.Initial);
   const [worldIDProof, setWorldIDProof] =
     React.useState<VerificationResponse | null>(null);
@@ -65,17 +68,42 @@ export const App = React.memo(function App() {
       web3Provider.getSigner(),
     );
 
+    // Split signature
+    const splitSignature = ethers.utils.splitSignature(toConsumeReferral);
+
+console.log("Claiming...");    
     // eslint-disable-next-line
-    const claimResult = await daiContract.claim(
-      walletAddress,
+    const claimResult = await daiContract.claimReferral(
+      splitSignature.v, splitSignature.r, splitSignature.s,
       worldIDProof.merkle_root,
       worldIDProof.nullifier_hash,
       abi.decode(["uint256[8]"], worldIDProof.proof)[0],
       { gasLimit: 10000000 },
     );
+console.log("Sent...");
     setTxHash((claimResult as Record<string, string>).hash);
     console.log("Airdrop claimed successfully!", claimResult);
   };
+
+  const createReferral = async () => {
+    const web3Provider = new ethers.providers.Web3Provider(provider);
+    const daiContract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      CONTRACT_ABI,
+      web3Provider.getSigner(),
+    );
+    const signerAddress = await web3Provider.getSigner().getAddress();
+        
+    const uRef = await daiContract.unsignedReferral(toRefAddress);
+    window.alert("Click \"Sign\" in your wallet after closing this popup message.");
+    const signature = await web3Provider.getSigner().signMessage(ethers.utils.arrayify(uRef));
+console.log("Signature: ", signature);
+    const splitSignature = ethers.utils.splitSignature(signature);
+    const signatureIssuer = await daiContract.checkReferral(splitSignature.v, splitSignature.r, splitSignature.s, toRefAddress);
+console.log("signed by: ", signatureIssuer);
+console.log("verified: ", signatureIssuer === signerAddress);
+    setReferral(signature);
+  }
 
   const claim = async () => {
     setModalContent(modalVariants.pending);
@@ -126,18 +154,12 @@ export const App = React.memo(function App() {
 
         {screen !== Screen.Congratulations && (
           <div className="grid justify-items-center gap-y-3 justify-self-center text-ffffff xs:gap-y-4">
-            <h1 className="text-16 font-bold xs:text-24">
-              BIGGEST AIRDROP IS HERE!
-            </h1>
-
+          
             <div className="mt-2 grid justify-items-center text-48 lg:text-80 xs:mt-0 xs:block">
               <span className="font-black text-df57bc ">Get a network referral </span>
             </div>
 
-            <p className="mb-5 text-center text-14 xs:mb-8 xs:text-18">
-              Login to claim your referral.
-            </p>
-
+          
             {screen === Screen.Initial && (
               <div className="grid justify-items-center gap-y-3 ">
                 <Button
@@ -145,7 +167,7 @@ export const App = React.memo(function App() {
                   type="button"
                   className="bg-df57bc hover:bg-df57bc/70"
                 >
-                  Connect Wallet to Process Referral
+                  Connect Wallet
                 </Button>
 
                 <p className="text-14 xs:text-12">
@@ -156,6 +178,28 @@ export const App = React.memo(function App() {
 
             {screen === Screen.Confirm && (
               <div className="grid w-full max-w-[254px] gap-y-8">
+
+                <form>
+                  <label>
+                    Address to refer:
+                    <input type="text" style={{color: 'black'}} value={toRefAddress} onChange={e => setToRefAddress(e.currentTarget.value)} />
+                  </label>
+                  <br/> <br/>
+                  <Button
+                    type="button"
+                    className="bg-df57bc hover:bg-df57bc/70"
+                    onClick={createReferral}
+                  >
+                    Create Referral
+                  </Button>
+                </form>
+
+                {referral && 
+                  <label>
+                  Referral:
+                  <input type="text" readonly style={{color: 'black'}} value={referral} />
+                  </label>}
+               
                 {walletAddress && (
                   <WorldIDComponent
                     signal={walletAddress}
@@ -163,14 +207,21 @@ export const App = React.memo(function App() {
                   />
                 )}
 
-                <Button
-                  type="button"
-                  className="w-full bg-df57bc hover:bg-df57bc/70"
-                  disabled={!worldIDProof}
-                  onClick={claim}
-                >
-                  Claim
-                </Button>
+                <form>
+                  <label>
+                    Referral to consume:
+                    <input type="text" style={{color: 'black'}} value={toConsumeReferral} onChange={e => setToConsumeReferral(e.currentTarget.value)} />
+                  </label>
+                  <br/> <br/>
+                  <Button
+                    type="button"
+                    className="w-full bg-df57bc hover:bg-df57bc/70"
+                    disabled={!worldIDProof}
+                    onClick={claim}
+                  >
+                    Register Referral
+                  </Button>
+                </form>
               </div>
             )}
           </div>
@@ -187,8 +238,7 @@ export const App = React.memo(function App() {
               CONGRATULATIONS!
             </h1>
             <p className="text-center text-14 text-ffffff xs:text-18">
-              Your tokens have been claimed and they are now available in your
-              wallet!
+              Your referral has been processed. Now you are ready to receive commission.
             </p>
             <p className="text-center text-14 text-ffffff xs:text-18">
               Your transaction hash is:{" "}

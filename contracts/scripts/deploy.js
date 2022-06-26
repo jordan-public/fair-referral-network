@@ -39,48 +39,48 @@ const ask = async question => {
     })
 }
 
-async function deployPoseidon() {
-    const spinner = ora(`Deploying Poseidon library...`).start()
-    let tx = await wallet.sendTransaction({ data: poseidon_gencontract.createCode(2) })
-    spinner.text = `Waiting for Poseidon deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed Poseidon library to ${tx.contractAddress}`)
+// async function deployPoseidon() {
+//     const spinner = ora(`Deploying Poseidon library...`).start()
+//     let tx = await wallet.sendTransaction({ data: poseidon_gencontract.createCode(2) })
+//     spinner.text = `Waiting for Poseidon deploy transaction (tx: ${tx.hash})`
+//     tx = await tx.wait()
+//     spinner.succeed(`Deployed Poseidon library to ${tx.contractAddress}`)
 
-    return tx.contractAddress
-}
+//     return tx.contractAddress
+// }
 
-async function deployIBT(poseidonAddress) {
-    const spinner = ora(`Deploying IncrementalBinaryTree library...`).start()
-    let tx = await wallet.sendTransaction({
-        data: IncrementalBinaryTree.bytecode.object.replace(
-            /__\$\w*?\$__/g,
-            poseidonAddress.slice(2)
-        ),
-    })
-    spinner.text = `Waiting for IncrementalBinaryTree deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed IncrementalBinaryTree library to ${tx.contractAddress}`)
+// async function deployIBT(poseidonAddress) {
+//     const spinner = ora(`Deploying IncrementalBinaryTree library...`).start()
+//     let tx = await wallet.sendTransaction({
+//         data: IncrementalBinaryTree.bytecode.object.replace(
+//             /__\$\w*?\$__/g,
+//             poseidonAddress.slice(2)
+//         ),
+//     })
+//     spinner.text = `Waiting for IncrementalBinaryTree deploy transaction (tx: ${tx.hash})`
+//     tx = await tx.wait()
+//     spinner.succeed(`Deployed IncrementalBinaryTree library to ${tx.contractAddress}`)
 
-    return tx.contractAddress
-}
+//     return tx.contractAddress
+// }
 
-async function deploySemaphore(ibtAddress) {
-    const spinner = ora(`Deploying Semaphore contract...`).start()
-    let tx = await wallet.sendTransaction({
-        data: Semaphore.bytecode.object.replace(/__\$\w*?\$__/g, ibtAddress.slice(2)),
-    })
-    spinner.text = `Waiting for Semaphore deploy transaction (tx: ${tx.hash})`
-    tx = await tx.wait()
-    spinner.succeed(`Deployed Semaphore contract to ${tx.contractAddress}`)
+// async function deploySemaphore(ibtAddress) {
+//     const spinner = ora(`Deploying Semaphore contract...`).start()
+//     let tx = await wallet.sendTransaction({
+//         data: Semaphore.bytecode.object.replace(/__\$\w*?\$__/g, ibtAddress.slice(2)),
+//     })
+//     spinner.text = `Waiting for Semaphore deploy transaction (tx: ${tx.hash})`
+//     tx = await tx.wait()
+//     spinner.succeed(`Deployed Semaphore contract to ${tx.contractAddress}`)
 
-    return tx.contractAddress
-}
+//     return tx.contractAddress
+// }
 
 async function askFeeList() {
     let f = [];
     while (true) {
         const nextFee = await ask('Nex referral fee (in 10000-ths): ');
-        if (0 === nextFee) break;
+        if ("" === nextFee) break;
         f.push(nextFee);
     }
     return f;
@@ -99,7 +99,7 @@ async function deployFairReferralNetwork(semaphoreAddress) {
             concat([
                 FairReferralNetwork.bytecode.object,
                 abi.encode(FairReferralNetwork.abi[0].inputs, [
-                    semaphoreAddress,
+                    "0xABB70f7F39035586Da57B3c8136035f87AC0d2Aa", // semaphoreAddress,
                     groupId,
                     fees,
                 ]),
@@ -114,9 +114,9 @@ async function deployFairReferralNetwork(semaphoreAddress) {
 }
 
 async function main(poseidonAddress, ibtAddress, semaphoreAddress) {
-    if (!poseidonAddress) poseidonAddress = await deployPoseidon()
-    if (!ibtAddress) poseidonAddress = await deployIBT(poseidonAddress)
-    if (!semaphoreAddress) semaphoreAddress = await deploySemaphore(ibtAddress)
+    // if (!poseidonAddress) poseidonAddress = await deployPoseidon()
+    // if (!ibtAddress) poseidonAddress = await deployIBT(poseidonAddress)
+    // if (!semaphoreAddress) semaphoreAddress = await deploySemaphore(ibtAddress)
 
     await deployFairReferralNetwork(semaphoreAddress)
 }
