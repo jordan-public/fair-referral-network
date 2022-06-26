@@ -18,7 +18,7 @@ contract FairReferralNetwork {
     IWorldID internal immutable worldId;
 
     /// @dev The World ID group whose participants can claim this airdrop
-    uint256 internal immutable groupId;
+    uint256 internal constant groupId = 1;
 
     /// @dev Whether a nullifier hash has been used already. Used to prevent double-signaling
     mapping(uint256 => bool) internal nullifierHashes;
@@ -31,14 +31,11 @@ contract FairReferralNetwork {
 
     /// @notice Deploys a FairReferralNetwork instance
     /// @param _worldId The WorldID instance that will manage groups and verify proofs
-    /// @param _groupId The ID of the Semaphore group World ID is using (`1`)
     constructor(
         IWorldID _worldId,
-        uint256 _groupId,
         uint256[] memory _referralFees
     ) {
         worldId = _worldId;
-        groupId = _groupId;
         for (uint i; i < _referralFees.length; i++) referralFees.push(_referralFees[i]);
     }
 

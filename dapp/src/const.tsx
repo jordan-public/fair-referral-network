@@ -17,6 +17,6 @@ export const provider = new WalletConnectProvider({
 
 export const CONTRACT_ADDRESS =
   process.env.WLD_CONTRACT_ADDRESS || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-  "0xe6ad7663B2614c51e07F27e82c195050a4E8F1B5";
+  "0x71D470191cd8780D8484485a500E8fe18769e7Ac";
 
 export const CONTRACT_ABI = afFairReferralNetwork.abi;

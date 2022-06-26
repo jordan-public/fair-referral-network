@@ -87,10 +87,7 @@ async function askFeeList() {
 }
 
 async function deployFairReferralNetwork(semaphoreAddress) {
-    const [groupId, fees] = [
-        await ask('Semaphore group id: '),
-        await askFeeList(),
-    ]
+    const fees = await askFeeList();
 
     const spinner = ora(`Deploying FairReferralNetwork contract...`).start()
 
@@ -100,7 +97,6 @@ async function deployFairReferralNetwork(semaphoreAddress) {
                 FairReferralNetwork.bytecode.object,
                 abi.encode(FairReferralNetwork.abi[0].inputs, [
                     "0xABB70f7F39035586Da57B3c8136035f87AC0d2Aa", // semaphoreAddress,
-                    groupId,
                     fees,
                 ]),
             ])
