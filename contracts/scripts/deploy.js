@@ -79,7 +79,7 @@ const ask = async question => {
 async function askFeeList() {
     let f = [];
     while (true) {
-        const nextFee = await ask('Nex referral fee (in 10000-ths): ');
+        const nextFee = await ask('Next referral fee (in 10000-ths): ');
         if ("" === nextFee) break;
         f.push(nextFee);
     }
