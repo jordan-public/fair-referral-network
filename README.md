@@ -1,3 +1,5 @@
+[This project](https://ethglobal.com/showcase/fair-referral-network-cz9m0) won the 🏊‍♂️ [Worldcoin — Pool Prize](https://ethglobal.com/showcase/fair-referral-network-cz9m0) at the [ETHNewYork 2022](https://ethglobal.com/events/ethnewyork2022) hackathon.
+
 # Fair Referral Network
 Sybil attack proof referral network using Worldcoin Zero Knowledge proof-of-personhood
 
